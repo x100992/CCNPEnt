@@ -1,0 +1,216 @@
+@encorAdditionalCommands:
+task1: trunk fa0/10-12:
+CoreTaas/CoreBABA:
+
+config t
+ interface range fa0/10-12
+  switchport trunk encapsulation dot1q
+  switchport mode trunk
+  do sh int trunk
+
+task2: Configure Etherchannel/Lab2 on fa0/10-12
+		using LACP: Link aggregation control protocol
+		
+config t
+ interface range fa0/10-12
+  shut
+  channel-group 1 mode active
+  channel-protocol lacp  
+  no shut
+  do sh etherchannel summary
+  do sh int po1 | inc BW
+  
+  
+conf t
+ int port-channel 1
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+
+
+hsrp: 10.41.1.6
+
+Task3/EncorLab3: hot standby routing protocol
+@coretaas
+
+conf t
+ int vlan 1
+ no standby 1
+ standby 1 ip 10.41.1.6
+ standby 1 preempt
+ standby 1 priority 100
+
+@corebaba/Primary
+
+conf t
+ track 1 int gi 0/1 line-protocol 
+ int vlan 1
+ no standby 1
+ standby 1 ip 10.41.1.6
+ standby 1 preempt
+ standby 1 priority 150
+ standby 1 track 1 decrement 60
+ 
+Task 4: Core Taas create a routed port to DITO: 
+@coretaas
+
+conf t
+ int gi 0/1
+  no switchport
+  !makes this a routed port, not part of any vlan
+  ip address 201.0.0.41 255.255.255.0
+  no shut
+  do ping 200.0.0.1
+  
+Task 5: vlan trunking protocol /VTP config for coresw
+
+@coretaas/corebaba
+
+config t
+ vtp domain ccnp
+ vtp password encor
+ vtp mode server
+ exit
+ show vtp status
+
+task 6: basic EDGE config
+
+task 7: multiarea ospf config
+@edge, @coretaas, @corebaba, @cucm
+
+@coretaas
+
+config t
+ ip routing
+ router ospf 1
+ router-id 10.41.1.2
+ network 10.41.1.0 0.0.255.255 area 41
+  
+ 
+@corebaba
+config t
+ ip routing
+ router ospf 1
+ router-id 10.41.1.4
+ network 10.41.1.0 0.0.255.255 area 41 
+
+@cucm
+config t
+ ip routing
+ router ospf 1
+ router-id 10.41.100.8
+ network 10.41.100.0 0.0.0.255 area 41 
+
+@edge
+conf t
+ router ospf 1
+ router-id 41.0.0.1
+ network 200.0.0.0 0.0.0.255 area 0
+ network 10.41.41.0 0.0.0.255 area 0 ->>> should be area 41
+ network 41.0.0.1 0.0.0.0 area 0
+ 
+
+
+Task 8: Get MAC of fa0/6 and fa0/8
+
+  50    001a.0706.c2fe    DYNAMIC     Fa0/8
+  50    001a.0709.4929    DYNAMIC     Fa0/6
+  
+  @possible encor LAB: mac address reservation:
+  
+@corebaba
+
+conf t
+ ip dhcp pool CAMERAsaPort6
+  host 10.41.50.6 255.255.255.0
+  client-identifier 001a.0709.4929
+
+ ip dhcp pool CAMERAsaPort8
+  host 10.41.50.8 255.255.255.0
+  client-identifier 001a.0706.c2fe
+  
+  
+  
+Task 9: Cisco and DNS Integration
+
+#have Cisco and DNS talk to each other:
+CoreBABA:
+
+config t
+ ip domain-lookup
+ ip domain-name encor41.com
+ ip name-server 10.41.1.10
+ end
+ 
+ 
+Task 10: Configuring Cisco Wireless controllers
+
+Encor Learn how to configure a WirelessController
+
+Task 11: Cisco Storage and Backup Services
+
+Integrate Cisco and FTP Services
+
+
+Tak 13: Advanced STP 802.1d
+
+
+wireshark = bridge priority is 32768 - bopols, default is bad
+Office: RootBridge = Taas, 2nd RB, Baba
+Taas -> 32786 --> 24576
+Baba -> 32786 --> 28672
+
+@taas
+conf t
+ spanning-tree mode pvst
+ spanning-tree vlan 1-100 root Primary
+ 
+@baba
+conf t
+ spanning-tree mode pvst
+ spanning-tree vlan 1-100 root Secondary
+ 
+ 
+*If Root Identifier in Wireshark is 28k, it means primary sw has failed
+
+
+
+Task 14: STP
+
+BPDU Guard on switch to avoid loop, it'll disable looped ports forever!
+Root guard on acces ports
+Backbone fast on core / root bridge ('active' port to sec sw, nbr sw has root port)
+Uplink fast on sec sw, root port towards pri sw
+
+@Taas
+config t
+ spanning-tree mode rapid-pvst
+ spanning-tree backbonefast
+ spanning-tree portfast bpduguard default
+ int range fa0/1-8
+  spanning-tree portfast
+
+@baba
+config t
+ spanning-tree mode rapid-pvst
+ spanning-tree uplinkfast
+ spanning-tree portfast bpduguard default
+ int range fa0/1-8
+  spanning-tree portfast
+ 
+ 
+#sh int err-disabled
+
+
+
+Task 15: how to master 14 labs
+
+root
+C1sc0123
+
+rm -r /etc/udev/rules.d/70-persistent.rules.d
+ y
+ 
+en
+pass
+
+ 

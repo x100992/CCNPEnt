@@ -1,0 +1,249 @@
+
+!
+! Last configuration change at 07:18:45 UTC Sat May 11 2024 by admin
+!
+version 16.9
+service timestamps debug datetime msec
+service timestamps log datetime msec
+service password-encryption
+platform qfp utilization monitor load 80
+platform punt-keepalive disable-kernel-core
+platform hardware throughput level 100000
+!
+hostname EDGE41
+!
+boot-start-marker
+boot-end-marker
+!
+!
+vrf definition Mgmt-intf
+ !
+ address-family ipv4
+ exit-address-family
+ !
+ address-family ipv6
+ exit-address-family
+!
+no logging console
+enable secret 5 $1$PGfG$EfC1.2zVdG0i44mVT4Ym9.
+!
+no aaa new-model
+!
+!
+!
+!
+!
+!
+!
+ip domain name rivanit.com
+!
+!
+!
+login on-success log
+!
+!
+!
+!
+!
+!
+!
+subscriber templating
+! 
+! 
+! 
+! 
+!
+multilink bundle-name authenticated
+!
+!
+!
+!
+!
+!
+!
+crypto pki trustpoint TP-self-signed-2500845485
+ enrollment selfsigned
+ subject-name cn=IOS-Self-Signed-Certificate-2500845485
+ revocation-check none
+ rsakeypair TP-self-signed-2500845485
+!
+!
+crypto pki certificate chain TP-self-signed-2500845485
+ certificate self-signed 01
+  30820330 30820218 A0030201 02020101 300D0609 2A864886 F70D0101 05050030 
+  31312F30 2D060355 04031326 494F532D 53656C66 2D536967 6E65642D 43657274 
+  69666963 6174652D 32353030 38343534 3835301E 170D3234 30353039 30313233 
+  31315A17 0D333030 31303130 30303030 305A3031 312F302D 06035504 03132649 
+  4F532D53 656C662D 5369676E 65642D43 65727469 66696361 74652D32 35303038 
+  34353438 35308201 22300D06 092A8648 86F70D01 01010500 0382010F 00308201 
+  0A028201 0100AB58 3E7208DF 81E3D26D 23370F72 49D8FA1C 1C7B6225 098A1942 
+  D1E87828 288D6902 D566A63A CB0AC644 4CA78CA3 049DB28A 1174C8CA 1F6867EF 
+  0F34844C DCE18507 14399814 52C0A5EA A4F91C63 7A559E9C EC43454B B346195F 
+  252B9C2A A6B1694B 3338F90F D3FB8D3C F6DAB054 A5CDBDDF 642F861A 686B69D7 
+  DB0CE9A7 5F43B2ED 73E837CF 1FEB1CB2 D0DD4F4C 2D1C4651 622A634D 5E170B39 
+  DCDB486A C19FFC4F 5ADC43BE E2E78FFA 990DF68D 5523EB88 0A457399 57A96D0D 
+  8D5E6C6E 3DBE1747 69BB0AE4 34778E66 6E4A10C3 51DBB64C 21F6A243 8C4AEA82 
+  CD8091FD 56C10DE7 816B3DA8 141314FC C3D39AD4 0D30E93C B9C5259B D2977561 
+  5048C3D4 0DA50203 010001A3 53305130 0F060355 1D130101 FF040530 030101FF 
+  301F0603 551D2304 18301680 14BF76F7 C877F7D8 6100C6E7 C27C6BBD EE1920CB 
+  C6301D06 03551D0E 04160414 BF76F7C8 77F7D861 00C6E7C2 7C6BBDEE 1920CBC6 
+  300D0609 2A864886 F70D0101 05050003 82010100 63F4CD72 05385028 B5420B84 
+  0E7B1CEA EB0946F5 DEB30D9F 6170F51D D4BA4A1A E9ADD5BB 5D0521DB B7BA0B1A 
+  CC1B6F32 37554FE4 213BB58F C8D0ED19 7040CB8F E78D08BD 0518F152 08A7B1F0 
+  C71C9D48 F5400BEF 0FF40F77 DF9A2DCF 69BF5948 E65367B7 F2FC9E32 D231763A 
+  912EAFD9 965C1825 4069E04D 62A97543 9B3E8D65 CB7AF701 D63C5CCF 9AC73AC9 
+  349B0535 8AEB82A8 406C26DF A215AF2C 99881F06 30557C64 400A89DF D023B756 
+  14830E55 2FD2DB02 14B9B196 F613D0E1 F341A9F2 7DDDD792 1C9E6581 5C065BC6 
+  CD0C07CB 804E3830 65812457 8FF54686 8345E5F8 49A378BE 8D2D752D C32E9934 
+  62CAEC4D 0F50BB75 A54E177F 428A35CA C95B45A7
+  	quit
+!
+!
+!
+!
+!
+!
+!
+!
+!
+voice-card 0/1
+ no watchdog
+!
+license udi pid ISR4321/K9 sn FDO22471N7H
+license accept end user agreement
+license boot suite AdvUCSuiteK9
+no license smart enable
+diagnostic bootup level minimal
+!
+spanning-tree extend system-id
+!
+!
+!
+username admin privilege 15 secret 5 $1$Gz2Y$G2jkqMhYrTEfvl9NLEC5f/
+username admin2 privilege 15 secret 5 $1$uCJp$iZld79WhXgsfZGSvFsla81
+!
+redundancy
+ mode none
+!
+!
+!
+!
+!
+!
+!
+! 
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+! 
+! 
+!
+!
+interface Loopback0
+ description VIRTUALIP
+ ip address 41.0.0.1 255.255.255.255
+!
+interface GigabitEthernet0/0/0
+ description INSIDE
+ ip address 10.41.41.1 255.255.255.0
+ negotiation auto
+!
+interface GigabitEthernet0/0/1
+ description OUTSIDE
+ ip address 200.0.0.41 255.255.255.0
+ negotiation auto
+!
+interface Service-Engine0/1/0
+!
+interface GigabitEthernet0
+ vrf forwarding Mgmt-intf
+ no ip address
+ negotiation auto
+!
+router ospf 1
+ router-id 41.0.0.1
+ network 10.41.41.0 0.0.0.255 area 41
+ network 41.0.0.1 0.0.0.0 area 0
+ network 200.0.0.0 0.0.0.255 area 0
+!
+ip forward-protocol nd
+ip http server
+ip http authentication local
+ip http secure-server
+ip http client source-interface GigabitEthernet0/0/1
+ip route 10.11.0.0 255.255.0.0 200.0.0.11
+ip route 10.12.0.0 255.255.0.0 200.0.0.12
+ip route 10.21.0.0 255.255.0.0 200.0.0.21
+ip route 10.22.0.0 255.255.0.0 200.0.0.22
+ip route 10.31.0.0 255.255.0.0 200.0.0.31
+ip route 10.32.0.0 255.255.0.0 200.0.0.32
+ip route 10.41.0.0 255.255.0.0 10.41.41.4
+ip route 10.42.0.0 255.255.0.0 200.0.0.42
+ip route 10.51.0.0 255.255.0.0 200.0.0.51
+ip route 10.52.0.0 255.255.0.0 200.0.0.52
+ip route 10.61.0.0 255.255.0.0 200.0.0.61
+ip route 10.62.0.0 255.255.0.0 200.0.0.62
+ip route 10.71.0.0 255.255.0.0 200.0.0.71
+ip route 10.72.0.0 255.255.0.0 200.0.0.72
+ip route 10.81.0.0 255.255.0.0 200.0.0.81
+ip route 10.82.0.0 255.255.0.0 200.0.0.82
+!
+ip ssh version 2
+!
+!
+!
+!
+!
+control-plane
+!
+!
+voice-port 0/1/0
+!
+voice-port 0/1/1
+!
+voice-port 0/1/2
+!
+voice-port 0/1/3
+!
+voice-port 0/1/4
+!
+voice-port 0/1/5
+!
+mgcp behavior rsip-range tgcp-only
+mgcp behavior comedia-role none
+mgcp behavior comedia-check-media-src disable
+mgcp behavior comedia-sdp-force disable
+!
+mgcp profile default
+!
+!
+!
+!
+!
+!
+line con 0
+ exec-timeout 0 0
+ transport input none
+ stopbits 1
+line aux 0
+ stopbits 1
+line vty 0 4
+ login local
+ transport input all
+line vty 5 14
+ login local
+ transport input all
+!
+!
+!
+!
+!
+!
+end
