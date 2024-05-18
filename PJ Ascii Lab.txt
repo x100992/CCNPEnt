@@ -1,0 +1,215 @@
+
+
+Ansible runs on Linux OS
+Control Maxhin: Laptop/PC/Server: Linux-based
+
+- Running SSH Sever/Client
+- YAML (.yml) file extension
+- Uses Ansible-playbook to execute the config
+- Python environment
+- Sensitive in Syntax and Space (Don't use TAB!)
+
+EEM (Embedded Event Management)
+
+TCL
+Expect Scripts
+
+With EEM, we could create an event manager where in it'll run a couple of actions on match!
+
+e.g 
+1) When an interface goes down, change next hop ip
+2) Disable certain functions (e.g disable reload)
+3) reload/erase config when someone runs "hostname" in cli
+
+Virtual Port Group acts as a hand to pull out containers
+
+ 
+ 						 							*BPDU Guard: Loop avoidance						*Sec/100
+ 						 							*Root Guard: Access ports						/
+ 						 														+-----------------------+ 1) PoE
+ 						 														|						| 2) VLAN
+ 						 									Root Bridge  <----- |	  	CoreTAAS		| 3) SVI
+ 						 														|	   Layer 3 Core		| 4) DHCP Server
+ 						 														|						| 5) OSPF
+ 						 														+-----------------------+
+ 						 						*All ports are Designated <-------- [Fa0/10,11,12]
+ 						 																 |||
+ 						 																 |||
+ 						 															(EtherChannel)															(METROETHERNET)
+ 						 																 |||																		|200.0.0.1/24
+ 						 																 |||																		|
+ 						 								*Fa0/10 is Root Port <----- [Fa0/10,11,12]																	|
+ 						 												+-----------------------------------+														|
+ 						 												|			CoreBABA				|														|
+ 						 												|		Layer 3 Distribution		|														|
+ 					(ISE)				10.x.1.10/24					|									|	*Pri/150							 EDGE			| 200.0.0.x/24
+ 							 Win Server 22 -------------------- [Fa0/1] |   Vlan 001: 10.x.1.4/24 (Data)	| [Gi0/1] -------------------- [Gi0/0/0] Cisco 4321 [Gi0/0/1] 
+ 						 												|									| 		10.x.x.4/24		10.x.x.1/24
+ 										10.x.10.x/24					|									|
+ 	 *Requires 3x IP Wireless Ctrl (1851i) -------------------- [Fa0/2] |									|
+ 					 													| Vlan 010: 10.x.10.4/24 (Wireless)	|
+ 						 Wireless AP (2702) ------------------- [Fa0/4] |									|
+ 						 				10.x.10.3/24					| 									| [Fa0/8] -------------------- IPCam1 10.x.50.8/24
+ 						 												| Vlan 050: 10.x.50.4/24  (IPCCTV)	|
+ 						 												|									| [Fa0/6] -------------------- IPCam2 10.x.50.6/24
+ 						 												|									|
+ 						 												|  Vlan 100: 10.x.100.4/24 (Voice)	|
+ 						 												+-----------------------------------+
+ 						 													[Fa0/3]		[Fa0/5]		[Fa0/7]
+ 						 														|			|			|
+ 						 														|			|			|
+ 						 														|		[Network]		|
+ 						 														|	  10.x.100.101/24	|
+ 						 														|		VidP1 (8945)	|
+ 						 														|						|
+ 						 									  10.x.100.8/24 [Fe0/0]					[Network] 10.x.100.102/24
+ 						 												  CallManager				VidP2 (8945)
+ 						 												  Express 9.1			  
+ 						 												1) Analog phone
+ 						 												2) IP Phone
+ 						 												3) In/Out
+ 						 												4) Video
+ 						 												5) IVRS
+ 
+
+
+
+
+
+
+################################################################################################################################
+
+VMWare
+
+vmdk	Virtual Disck
+ova		Open Virtualization File (Opens in VMWare exsi or virtual box)
+vmss	VM Snapshot
+vmx		VMWare Config
+
+
+
+TURN INTERNET OFF !
+
+
+++ SDWAN
+
+	@Cloud Init config
+
+	conf t
+	 hostname google
+	  int lo0
+	  ip add 8.8.8.8 255.255.255.255
+	  exit
+	 
+	 int vlan 1
+	 no shut
+	 ip add 100.0.0.254 255.255.255.0
+	 
+	 router bgp 65001
+	  no synch
+	  bgp log-neighbor-changes
+	  network 8.8.8.8 mask 255.255.255.255
+	  network 100.0.0.0 mask 255.255.255.0
+	  neighbor 100.0.0.107 remote-as 65001
+	  neighbor 100.0.0.109 remote-as 65001
+	  neighbor 100.0.0.111 remote-as 65001
+	  no auto-summary
+	  end
+	  wr
+	  
+  
+  
+  
+	@Remote sites init config
+
+conf t
+ hostname Site1
+ no ip domain-lookup
+ int f0/0
+  no shut
+  ip add 172.16.10.2 255.255.255.0
+  exit
+ int lo0
+  no shut
+  ip add 1.1.1.1 255.255.255.255
+  end
+ wr
+ 
+conf t
+ hostname Site2
+ no ip domain-lookup
+ int f0/0
+  no shut
+  ip add 172.16.20.2 255.255.255.0
+  exit
+ int lo0
+  no shut
+  ip add 2.2.2.2 255.255.255.255
+  end
+ wr
+ 
+ 
+conf t
+ hostname Site3
+ no ip domain-lookup
+ int f0/0
+  no shut
+  ip add 172.16.30.2 255.255.255.0
+  exit
+ int lo0
+  no shut
+  ip add 3.3.3.3 255.255.255.255
+  end
+ wr
+	 
+	 
+
+		 
+	@Remote site's OSPF config
+
+	Site 1
+
+conf t
+ router ospf 1
+  network 172.16.10.0 0.0.0.255 area 0
+  network 1.1.1.1 0.0.0.0 area 0
+  end
+ wr
+ 
+ 
+Site 2
+
+conf t
+ router ospf 1
+  network 172.16.20.0 0.0.0.255 area 0
+  network 2.2.2.2 0.0.0.0 area 0
+  end
+ wr
+ 
+
+
+Site 3
+
+conf t
+ router ospf 1
+  network 172.16.30.0 0.0.0.255 area 0
+  network 3.3.3.3 0.0.0.0 area 0
+  end
+ wr
+ 
+
+
+
+!Redistribute OMP to VPN1 ?
+!OMP - Overlay Management Protocol
+  
+
+
+
+
+!Templates
+
+Import SD-WAN OVF
+
+Net Adapter 1 - VMNet 2
+Net Adapter 2 - VMNet 4
