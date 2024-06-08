@@ -213,3 +213,308 @@ Import SD-WAN OVF
 
 Net Adapter 1 - VMNet 2
 Net Adapter 2 - VMNet 4
+
+
+
+
+
+#################################################
+
+
+TASK1: ENCOR Security:
+
+CMD
+
+ping 10.41.1.2
+ping 10.41.1.4
+ping 10.41.41.1
+ping 10.41.100.8
+
+
+Why the server?
+Cisco Encore needs: Certificate Authority, Active Directory/LDAP, Radius/802.1x
+
+cmd:
+powershell
+Set-NetfirewallProfile -name public,private,domain -enabled false
+Get-NetfirewallProfile
+ncpa.cpl
+
+rename-computer radius
+
+Task 2: Configuring VirtualCisco sandbox:
+
+conf t
+ int gi2
+ ip add 192.168.102.7 255.2555.255.0
+ do wr
+ 
+ 
+Task 3: ADS for Cisco
+
+globalgroup = networkadmins
+users 			pj@encor41.com
+				you@encor41.com
+ 
+ 
+#################################################################################
+
+
+ENCOR LAB VirtualCisco
+
+1) CoPP
+2) Time-based ACL
+3) SuperAdmin
+
+
+RSTHayup: all else
+
+
+router bgp 1
+
+
+
+
+1) A:C::/64
+2) ::/0
+3) FE80::A:0:0:F/64
+4) 2002:6500:0:3000::/64
+5) ::1/128
+6) ff00::beef:a00a:aa0:0:0/8
+
+
+ping ff00:0000:0000:beef:a00a:0aa0:0000:0000
+
+@ISP2
+	ping b:1:2:b::3 !ISP3
+	ping b:2:4:b::5 !ISP4
+	ping b:2:1:b::4 !ISP1
+	ping b:1:22:b::1 !R1
+	
+	
+@ISP2
+conf t
+	ipv6 unicast-routing
+	int lo2
+		ipv6 add b22::1/128
+		router bgp 2
+			neighbor b:1:2:b::3 remote-as 3
+			neighbor b:2:4:b::5 remote-as 45
+			neighbor b:2:1:b::4 remote-as 45
+			neighbor b:1:22:b::1 remote-as 1
+			address-family ipv6
+				neighbor b:1:2:b::3 activate
+				neighbor b:2:4:b::5 activate
+				neighbor b:2:1:b::4 activate
+				neighbor b:1:22:b::1 activate
+				network B:1:2:B::/64
+				network B:1:22:B::/64
+				network B:2:1:B::/64
+				network B:2:4:B::/64
+				network b22::1/128
+				end
+				
+
+
+@R1
+	ping b:1:33:b::3 !ISP3
+	ping b:1:22:b::2 !ISP2
+	ping b:1:11:b::4 !ISP1
+
+R1#sh ipv6 route con | i C
+Codes: C - Connected, L - Local, S - Static, U - Per-user Static route
+       ND - ND Default, NDp - ND Prefix, DCE - Destination, NDr - Redirect
+C   B:1:11:B::/64 [0/0]
+C   B:1:22:B::/64 [0/0]
+C   B:1:33:B::/64 [0/0]
+
+	conf t
+		ipv6 unicast-routing
+		router bgp 1
+			neighbor b:1:33:b::3 remote-as 3
+			neighbor b:1:22:b::2 remote-as 2
+			neighbor b:1:11:b::4 remote-as 45
+			address-family ipv6
+			neighbor b:1:33:b::3 activate
+			neighbor b:1:22:b::2 activate
+			neighbor b:1:11:b::4 activate
+				network FEC0:1::/122    !loopback ni R1 v6
+				network B:1:11:B::/64
+				network B:1:22:B::/64
+				network B:1:33:B::/64
+				end
+
+
+
+
+
+@R3
+	conf t
+		ipv6 unicast-routing
+		interface loopback3
+			description Test I/F for OSPFv2 & OSPFv3 Routing
+			ip address 3.3.3.3 255.255.255.255
+			ipv6 address FEC0:3::3/122
+		interface Tunnel34
+			no ip address
+			ipv6 address 2026::34:1/122
+			tunnel source lo3
+			tunnel destination 4.4.4.4
+			tunnel mode ipv6ip
+		int e1/1
+			ipv6 address 2026::1:2/122
+			end
+			
+			
+@R4
+	conf t
+		ipv6 unicast-routing
+		interface Loopback4
+			description Test I/F for OSPFv2 & OSPFv3 Routing
+			ip address 4.4.4.4 255.255.255.255
+			ipv6 address FEC0::4:4/122
+		interface e1/0
+			description L3 Link to DSW1
+			ip address 10.1.4.5 255.255.255.252
+			ipv6 address 2026::2:1/122 
+		interface e1/1
+			description L3 Link to DSW2 fa0/14
+			ip address 10.1.4.9 255.255.255.252
+		interface Loopback14
+			description Test I/F for RIPng Routing
+			no ip address
+			ipv6 address FEC0::14:4/122
+		interface Loopback21
+			description Test I/F for EIGRPv4 Routing & IP(v4) Helper Loopback I/F
+			ip address 10.1.21.129 255.255.255.224
+		interface Tunnel34
+	    !creating a tunnel for the ipv6 connection of router 3 and router 4
+			no ip address
+			ipv6 address 2026::34:2/122
+			tunnel source lo4
+			tunnel destination 3.3.3.3
+			tunnel mode ipv6ip
+			end
+			
+			
+			
+			
+@R2
+	conf t
+		ipv6 router ospf 6
+			router-id 2.2.2.2
+		int lo2
+			ipv6 ospf 6 area 0
+		int e1/2
+			ipv6 ospf 6 area 12
+		int e1/1
+			ipv6 ospf 6 area 0
+			end
+			
+			
+@R4
+	conf t
+		ipv6 router ospf 6
+			router-id 4.4.4.4
+		int lo4
+			ipv6 ospf 6 area 34
+		interface Tunnel34
+			ipv6 ospf 6 area 34
+			end
+			
+
+
+!
+interface Tunnel34
+ no ip address
+ ipv6 address 2026::34:1/122
+ ipv6 ospf 6 area 34
+ tunnel source Loopback3
+ tunnel mode ipv6ip
+ tunnel destination 4.4.4.4
+end
+
+
+!
+interface Tunnel34
+ no ip address
+ ipv6 address 2026::34:2/122
+ ipv6 ospf 6 area 34
+ tunnel source Loopback4
+ tunnel mode ipv6ip
+ tunnel destination 3.3.3.3
+end
+
+ network 10.1.1.8 0.0.0.3 area 34
+ network 10.1.1.8 0.0.0.3 area 34
+ 
+ 
+ 
+conf t
+		int lo1
+			ipv6 add 11:11:11:11::1/64
+		ipv6 router eigrp 10
+			eigrp router-id 1.1.1.1
+			no shut
+		int lo1
+			ipv6 eigrp 10
+		int e1/1
+			ipv6 eigrp 10
+		int vlan 10
+			ipv6 eigrp 10
+		int vlan 20
+			ipv6 eigrp 10
+		int vlan 200
+			ipv6 eigrp 10
+			end
+			
+		
+@D2		
+conf t
+		int lo1
+			ipv6 add 22:22:22:22::2/64
+		ipv6 router eigrp 10
+			eigrp router-id 2.2.2.2
+			no shut
+		int lo1
+			ipv6 eigrp 10
+		int e1/1
+			ipv6 eigrp 10
+		int vlan 10
+			ipv6 eigrp 10
+		int vlan 20
+			ipv6 eigrp 10
+		int vlan 200
+			ipv6 eigrp 10
+			end
+			
+			
+R1-JP#sh int e 0/0
+Ethernet0/0 is up, line protocol is up 
+  Hardware is AmdP2, address is aabb.cc00.4000 (bia aabb.cc00.4000)
+  Internet address is 50.0.0.1/8
+  MTU 1500 bytes, BW 10000 Kbit/sec, DLY 1000 usec, 
+     reliability 255/255, txload 1/255, rxload 1/255
+  Encapsulation ARPA, loopback not set
+  Keepalive set (10 sec)
+  ARP type: ARPA, ARP Timeout 04:00:00
+  Last input 00:00:00, output 00:00:06, output hang never
+  Last clearing of "show interface" counters never
+  Input queue: 0/75/0/0 (size/max/drops/flushes); Total output drops: 0
+  Queueing strategy: fifo
+  Output queue: 0/40 (size/max)
+  5 minute input rate 0 bits/sec, 0 packets/sec
+  5 minute output rate 0 bits/sec, 0 packets/sec
+     124 packets input, 7664 bytes, 0 no buffer
+     Received 114 broadcasts (0 IP multicasts)
+     0 runts, 0 giants, 0 throttles 
+     0 input errors, 0 CRC, 0 frame, 0 overrun, 0 ignored
+     0 input packets with dribble condition detected
+     50 packets output, 7539 bytes, 0 underruns
+     0 output errors, 0 collisions, 1 interface resets
+     1 unknown protocol drops
+     0 babbles, 0 late collision, 0 deferred
+     0 lost carrier, 0 no carrier
+     0 output buffer failures, 0 output buffers swapped out
+R1-JP#
+
